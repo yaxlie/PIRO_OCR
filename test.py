@@ -23,7 +23,7 @@ while True:
         data = {
             'gamma': sliders.gamma,
             'contrast': sliders.contrast,
-            'mean': sliders.mean,
+            'threshold': sliders.mean,
                 }
 
         # Write YAML file

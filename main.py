@@ -20,5 +20,5 @@ for filepath in os.listdir('res/'):
     imgs.append(cv2.imread('res/{0}'.format(filepath), 0))
 
 for image in imgs:
-    pp_image = processing.PreProcessing(image, params['gamma'], params['contrast'], params['mean']).result_image
+    pp_image = processing.PreProcessing(image, params['gamma'], params['contrast'], params['threshold']).result_image
     processing.show_image(pp_image, 'Image', 0, 0, DEBUG)
