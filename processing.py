@@ -12,19 +12,19 @@ def show_image(image, name, x=0, y=0, wait=False):
 
 
 class PreProcessing:
-    def __init__(self, image, gamma=0.8, contrast=10, mean=1, debug=False):
+    def __init__(self, image, gamma=0.8, contrast=10, threshold=1, debug=False):
         self.original_image = np.copy(image)
         self.debug = debug
         self.gamma = gamma
         self.contrast = contrast
-        self.mean = mean
+        self.threshold = threshold
 
         self.result_image = self.preprocess_image(image)
 
     def preprocess_image(self, image):
         g = self.gamma
         c = self.contrast
-        m = self.mean
+        t = self.threshold
 
         img = self.adjust_gamma(image, g)
 
@@ -32,20 +32,28 @@ class PreProcessing:
         pil_im = Image.fromarray(img)
         contrast = ImageEnhance.Contrast(pil_im)
         contrast = contrast.enhance(c)
+
         img = np.array(contrast)
 
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         img = cv2.GaussianBlur(img, (5, 5), 1)
 
-        retval, thresh = cv2.threshold(img, m, 255, cv2.THRESH_BINARY)
+        image = self.apply_threshold(img, t)
+
+        kernel = np.ones((5, 5), np.uint8)
+
+        image = cv2.erode(image, kernel, iterations=1)
+        # image = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
+
+
 
         if self.debug:
             show_image(img, 'Grey', 0, 300)
 
-            show_image(thresh, 'Thresh', 800, 300)
+            show_image(image, 'Thresh', 800, 300)
 
-        return thresh
+        return image
 
     def adjust_gamma(self, image, gamma=1.0):
         invGamma = 1.0 / gamma
@@ -64,14 +72,8 @@ class PreProcessing:
 
         return img.point(contrast)
 
-    def oldThresh(self, image):
-
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        blur = cv2.GaussianBlur(gray, (5, 5), 1)
-        mean = np.mean(blur)
-        if (mean > 255):
-            mean = 255
-        retval, thresh = cv2.threshold(blur, mean, 255, cv2.THRESH_BINARY)
+    def apply_threshold(self, image, t):
+        thresh = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, t)
 
         return thresh
 
