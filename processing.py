@@ -26,14 +26,15 @@ class PreProcessing:
         c = self.contrast
         t = self.threshold
 
-        img = self.adjust_gamma(image, g)
+        img = image
+        #img = self.adjust_gamma(image, g)
 
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        pil_im = Image.fromarray(img)
-        contrast = ImageEnhance.Contrast(pil_im)
-        contrast = contrast.enhance(c)
-
-        img = np.array(contrast)
+        # pil_im = Image.fromarray(img)
+        # contrast = ImageEnhance.Contrast(pil_im)
+        # contrast = contrast.enhance(c)
+        #
+        # img = np.array(contrast)
 
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -43,15 +44,26 @@ class PreProcessing:
 
         kernel = np.ones((5, 5), np.uint8)
 
-        image = cv2.erode(image, kernel, iterations=1)
+        image = 255 - image
+
+        image = cv2.dilate(image, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (12, 12)))
+        image = cv2.morphologyEx(image, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (15, 1)))
+        image = cv2.dilate(image, cv2.getStructuringElement(cv2.MORPH_RECT, (5, 1)))
+        image = cv2.morphologyEx(image, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (10, 6)))
+
+        image = cv2.morphologyEx(image, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (1, 15)))
+        image = cv2.morphologyEx(image, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (10, 6)))
+
+
+        # image = cv2.erode(image, cv2.getStructuringElement(cv2.MORPH_RECT, (8, 1)), iterations=2)
         # image = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
 
-
+        image = 255 - image
 
         if self.debug:
-            show_image(img, 'Grey', 0, 300)
+            # show_image(img, 'Grey', 0, 300)
 
-            show_image(image, 'Thresh', 800, 300)
+            show_image(image, 'Thresh', 800, 300, True)
 
         return image
 
@@ -73,7 +85,7 @@ class PreProcessing:
         return img.point(contrast)
 
     def apply_threshold(self, image, t):
-        thresh = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, t)
+        thresh = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, t)
 
         return thresh
 

@@ -4,6 +4,7 @@ import numpy as np
 import cv2
 import os
 import yaml
+from scipy import ndimage
 
 import processing
 
@@ -20,6 +21,9 @@ for filepath in os.listdir('res/'):
     imgs.append(cv2.imread('res/{0}'.format(filepath), cv2.IMREAD_COLOR))
 
 for image in imgs:
+    if image.shape[1] > image.shape[0]:
+        image = ndimage.rotate(image, angle=-90)
+
     img = image.copy()
     pp_image = processing.PreProcessing(image, params['gamma'], params['contrast'], params['threshold']).result_image
     contours, hierarchy = cv2.findContours(pp_image, 1, 2)
@@ -37,7 +41,7 @@ for image in imgs:
         # cv2.drawContours(img, [vertices], -1, (255, 255, 0), 3)
 
     hull2 = [s for s in hull if len(s) > 10]
-    print(hull2[0])
+    # print(hull2[0])
     cv2.drawContours(img, hull2, -1, (255, 255, 0), 3)
 
     processing.show_image(pp_image, 'Image', 0, 0, False)
