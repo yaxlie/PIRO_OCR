@@ -2,6 +2,9 @@ import cv2
 import numpy as np
 from PIL import Image, ImageEnhance
 
+DEBUG = True
+
+
 def show_image(image, name, x=0, y=0, wait=False):
     cv2.namedWindow(name, cv2.WINDOW_NORMAL)
     cv2.imshow(name, image)
@@ -10,6 +13,45 @@ def show_image(image, name, x=0, y=0, wait=False):
     if wait:
         cv2.waitKey(0)
 
+class LinesUtil:
+    def __init__(self, image, pp_image):
+        self.image = image.copy()
+        self.pp_image = pp_image
+        self.contours, hierarchy = cv2.findContours(pp_image, 1, 2)
+
+        self.hull = []
+        for cnt in self.contours:
+            # epsilon = 0.1 * cv2.arcLength(contour, True)
+            # approx = cv2.approxPolyDP(contour, epsilon, True)
+            self.hull.append(cv2.convexHull(cnt, False))
+
+    def get_lines(self):
+        MAX_DIFF = 80
+        MIN_DIFF = 20
+        MAX_LINE_DIFF = 40
+        words = []
+        lines = []
+        last = 10000
+        for h in self.hull:
+            min_y = min(point[0][1] for point in h)
+            max_y = max(point[0][1] for point in h)
+            diff_y = max_y - min_y
+            avg_y = (min_y + max_y) / 2
+            if MIN_DIFF < diff_y < MAX_DIFF:
+                if last - avg_y > MAX_LINE_DIFF:
+                    lines.append(words)
+                    words = []
+                    last = avg_y
+                words.append(h)
+                if DEBUG:
+                    print(avg_y)
+        i = 0
+        if DEBUG:
+            for line in lines:
+                i += 1
+                cv2.drawContours(self.image, line, -1, (255 * (i % 2), 120 * (i % 3), 50 * (i % 6)), 3)
+
+        return lines
 
 class PreProcessing:
     def __init__(self, image, gamma=0.8, contrast=10, threshold=1, debug=False):
