@@ -36,9 +36,29 @@ for image in imgs:
         # vertices = cv2.convexHull(cnt, clockwise=True)
         # cv2.drawContours(img, [vertices], -1, (255, 255, 0), 3)
 
-    hull2 = [s for s in hull if len(s) > 10]
-    print(hull2[0])
-    cv2.drawContours(img, hull2, -1, (255, 255, 0), 3)
+    MAX_DIFF = 80
+    MIN_DIFF = 20
+    MAX_LINE_DIFF = 15
+    words = []
+    lines = []
+    last = 10000
+    for h in hull:
+        min_y = min(point[0][1] for point in h)
+        max_y = max(point[0][1] for point in h)
+        diff_y = max_y - min_y
+        avg_y = (min_y + max_y) / 2
+        if MIN_DIFF < diff_y < MAX_DIFF:
+            if last - avg_y > MAX_LINE_DIFF:
+                lines.append(words)
+                words = []
+            words.append(h)
+            last = avg_y
+
+            print(avg_y)
+    i = 0
+    for line in lines:
+        i += 1
+        cv2.drawContours(img, line, -1, (255 * (i % 2), 120 * (i % 3), 50 * (i % 6)), 3)
 
     processing.show_image(pp_image, 'Image', 0, 0, False)
     processing.show_image(img, 'Image2', 700, 0, DEBUG)
