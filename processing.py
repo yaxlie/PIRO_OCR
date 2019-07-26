@@ -47,11 +47,42 @@ class LinesUtil:
                     print(avg_y)
         i = 0
         if DEBUG:
+            self.crop_lines(lines)
             for line in lines:
-                i += 1
                 cv2.drawContours(self.image, line, -1, (255 * (i % 2), 120 * (i % 3), 50 * (i % 6)), 3)
 
         return lines
+
+    def crop_lines(self, lines):
+        i = 0
+
+        for line in lines:
+            i += 1
+
+            # try to crop contour to the new image
+            # for word in lines:
+            mask = np.zeros_like(self.pp_image)  # Create mask where white is what we want, black otherwise
+            cv2.drawContours(mask, line, -1, 255, 3)
+            out = np.copy(self.image)  # Extract out the object and place into output image
+            out[mask == 255] = self.image[mask == 255]
+
+            mask = np.zeros_like(self.pp_image)  # Create mask where white is what we want, black otherwise
+            cv2.drawContours(mask, line, -1, 255, 3)
+            out = np.copy(self.image)  # Extract out the object and place into output image
+            out[mask == 255] = self.image[mask == 255]
+
+            # Now crop
+            (y, x) = np.where(mask == 255)
+            if len(y) > 0 and len(x) > 0:
+                (topy, topx) = (np.min(y), np.min(x))
+                (bottomy, bottomx) = (np.max(y), np.max(x))
+                out = out[topy:bottomy + 1, topx:bottomx + 1]
+
+                # Show the output image
+                cv2.imshow('Output', out)
+                cv2.waitKey(0)
+                cv2.destroyAllWindows()
+
 
 class PreProcessing:
     def __init__(self, image, gamma=0.8, contrast=10, threshold=1, debug=False):
