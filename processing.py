@@ -2,6 +2,9 @@ import cv2
 import numpy as np
 from PIL import Image, ImageEnhance
 
+DEBUG = True
+
+
 def show_image(image, name, x=0, y=0, wait=False):
     cv2.namedWindow(name, cv2.WINDOW_NORMAL)
     cv2.imshow(name, image)
@@ -9,6 +12,76 @@ def show_image(image, name, x=0, y=0, wait=False):
     cv2.moveWindow(name, x, y)
     if wait:
         cv2.waitKey(0)
+
+class LinesUtil:
+    def __init__(self, image, pp_image):
+        self.image = image.copy()
+        self.pp_image = pp_image
+        self.contours, hierarchy = cv2.findContours(pp_image, 1, 2)
+
+        self.hull = []
+        for cnt in self.contours:
+            # epsilon = 0.1 * cv2.arcLength(contour, True)
+            # approx = cv2.approxPolyDP(contour, epsilon, True)
+            self.hull.append(cv2.convexHull(cnt, False))
+
+    def get_lines(self):
+        MAX_DIFF = 80
+        MIN_DIFF = 20
+        MAX_LINE_DIFF = 40
+        words = []
+        lines = []
+        last = 10000
+        for h in self.hull:
+            min_y = min(point[0][1] for point in h)
+            max_y = max(point[0][1] for point in h)
+            diff_y = max_y - min_y
+            avg_y = (min_y + max_y) / 2
+            if MIN_DIFF < diff_y < MAX_DIFF:
+                if last - avg_y > MAX_LINE_DIFF:
+                    lines.append(words)
+                    words = []
+                    last = avg_y
+                words.append(h)
+                if DEBUG:
+                    print(avg_y)
+        i = 0
+        if DEBUG:
+            self.crop_lines(lines)
+            for line in lines:
+                cv2.drawContours(self.image, line, -1, (255 * (i % 2), 120 * (i % 3), 50 * (i % 6)), 3)
+
+        return lines
+
+    def crop_lines(self, lines):
+        i = 0
+
+        for line in lines:
+            i += 1
+
+            # try to crop contour to the new image
+            # for word in lines:
+            mask = np.zeros_like(self.pp_image)  # Create mask where white is what we want, black otherwise
+            cv2.drawContours(mask, line, -1, 255, 3)
+            out = np.copy(self.image)  # Extract out the object and place into output image
+            out[mask == 255] = self.image[mask == 255]
+
+            mask = np.zeros_like(self.pp_image)  # Create mask where white is what we want, black otherwise
+            cv2.drawContours(mask, line, -1, 255, 3)
+            out = np.copy(self.image)  # Extract out the object and place into output image
+            out[mask == 255] = self.image[mask == 255]
+
+            # Now crop
+            (y, x) = np.where(mask == 255)
+            if len(y) > 0 and len(x) > 0:
+                (topy, topx) = (np.min(y), np.min(x))
+                (bottomy, bottomx) = (np.max(y), np.max(x))
+                out = out[topy:bottomy + 1, topx:bottomx + 1]
+
+                # Show the output image
+                cv2.imshow('Output', out)
+                cv2.waitKey(0)
+                cv2.destroyAllWindows()
 
 
 class PreProcessing:
