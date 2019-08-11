@@ -22,8 +22,11 @@ for filepath in os.listdir('res/'):
 for image in imgs:
     pp_image = processing.PreProcessing(image, params['gamma'], params['contrast'], params['threshold']).result_image
     linesUtil = processing.LinesUtil(image, pp_image)
+    rec_numbers = processing.RecognizeNumbers()
 
     lines = linesUtil.get_lines()
+
+    rec_numbers.numbers_hist(lines)
 
     processing.show_image(pp_image, 'Image', 0, 0, False)
     processing.show_image(linesUtil.image, 'Image2', 700, 0, DEBUG)

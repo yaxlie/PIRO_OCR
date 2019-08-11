@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+import keras
+
 from PIL import Image, ImageEnhance
 
 DEBUG = True
@@ -12,6 +14,22 @@ def show_image(image, name, x=0, y=0, wait=False):
     cv2.moveWindow(name, x, y)
     if wait:
         cv2.waitKey(0)
+
+
+class RecognizeNumbers:
+    model_filename = 'rec_digits.h5'
+
+    def __init__(self):
+        self.model = keras.models.load_model('saved_models/' + self.model_filename)
+
+    def numbers_hist(self, lines):
+        probs = []
+
+        for line in lines:
+            line = np.array(line).shape
+
+
+        return probs
 
 class LinesUtil:
     def __init__(self, image, pp_image):
@@ -100,7 +118,7 @@ class PreProcessing:
         t = self.threshold
 
         img = image
-        #img = self.adjust_gamma(image, g)
+        # img = self.adjust_gamma(image, g)
 
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         # pil_im = Image.fromarray(img)
@@ -126,7 +144,6 @@ class PreProcessing:
 
         image = cv2.morphologyEx(image, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (1, 15)))
         image = cv2.morphologyEx(image, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (10, 6)))
-
 
         # image = cv2.erode(image, cv2.getStructuringElement(cv2.MORPH_RECT, (8, 1)), iterations=2)
         # image = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
