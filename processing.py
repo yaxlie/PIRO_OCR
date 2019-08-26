@@ -2,9 +2,14 @@ import cv2
 import numpy as np
 import keras
 
+import matplotlib.pyplot as plt
+
 from PIL import Image, ImageEnhance
 
-DEBUG = True
+from skimage.transform import resize
+from skimage.color import rgb2gray
+
+DEBUG = False
 
 
 def show_image(image, name, x=0, y=0, wait=False):
@@ -16,20 +21,63 @@ def show_image(image, name, x=0, y=0, wait=False):
         cv2.waitKey(0)
 
 
+def crop_img(img, line):
+    reshaped_line = np.reshape(line, (-1, 2))
+    topx, topy = np.min(reshaped_line, axis=0)
+    bottomx, bottomy = np.max(reshaped_line, axis=0)
+    return img[topy:bottomy + 1, topx:bottomx + 1]
+
+
+def sample_img(img, step_size=1):
+    start_idx = 0
+    end_idx = img.shape[1]
+    window_size = img.shape[0]
+
+    samples = []
+
+    while start_idx + window_size <= end_idx:
+
+        sample = img[:window_size, start_idx:start_idx + window_size]
+        sample = rgb2gray(resize(sample, (28, 28, 3), anti_aliasing=True))
+        sample = sample.reshape((*sample.shape, 1))
+
+        samples.append(sample)
+
+        start_idx += step_size
+
+    return np.array(samples)
+
+
+
 class RecognizeNumbers:
     model_filename = 'rec_digits.h5'
 
     def __init__(self):
         self.model = keras.models.load_model('saved_models/' + self.model_filename)
+        self.currently_processed = None
 
-    def numbers_hist(self, lines):
-        probs = []
+    def predict(self, sampled_imgs):
+        probs = self.model.predict(sampled_imgs, steps=1)
+        max_probs = np.max(probs, axis=1)
 
+        # Dropp if no numbers
+        if np.median(max_probs) < 1e-1:
+            return None
+
+        return np.argmax(probs, axis=1)
+
+    def numbers_hist(self, img, lines):
         for line in lines:
-            line = np.array(line).shape
+            for elem in line:
+                if len(elem):
+                    cropped_img = crop_img(img, elem)
+                    sampled_imgs = sample_img(cropped_img)
+                    if sampled_imgs is not None and len(sampled_imgs) > 0:
+                        classes = self.predict(sampled_imgs)
 
-
-        return probs
+                        plt.imshow(cropped_img)
+                        plt.show()
+                        pass
 
 class LinesUtil:
     def __init__(self, image, pp_image):
@@ -97,9 +145,10 @@ class LinesUtil:
                 out = out[topy:bottomy + 1, topx:bottomx + 1]
 
                 # Show the output image
-                cv2.imshow('Output', out)
-                cv2.waitKey(0)
-                cv2.destroyAllWindows()
+                if DEBUG:
+                    cv2.imshow('Output', out)
+                    cv2.waitKey(0)
+                    cv2.destroyAllWindows()
 
 
 class PreProcessing:

@@ -7,7 +7,7 @@ import yaml
 
 import processing
 
-DEBUG = True
+DEBUG = False
 
 imgs = []
 
@@ -26,7 +26,7 @@ for image in imgs:
 
     lines = linesUtil.get_lines()
 
-    rec_numbers.numbers_hist(lines)
+    rec_numbers.numbers_hist(image, lines)
 
     processing.show_image(pp_image, 'Image', 0, 0, False)
     processing.show_image(linesUtil.image, 'Image2', 700, 0, DEBUG)
