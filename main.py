@@ -1,32 +1,47 @@
-import io
+import sys
 
-import numpy as np
 import cv2
-import os
 import yaml
 
 import processing
 
 DEBUG = False
 
-imgs = []
+rec_numbers = processing.RecognizeNumbers()
 
-# Read YAML file
-with open("params.yaml", 'r') as stream:
-    params = yaml.safe_load(stream)
 
-# Load in the images
-for filepath in os.listdir('res/'):
-    imgs.append(cv2.imread('res/{0}'.format(filepath), cv2.IMREAD_COLOR))
+def ocr(path_to_image):
+    result = []
 
-for image in imgs:
+    with open("params.yaml", 'r') as stream:
+        params = yaml.safe_load(stream)
+
+    image = cv2.imread(path_to_image, cv2.IMREAD_COLOR)
+
     pp_image = processing.PreProcessing(image, params['gamma'], params['contrast'], params['threshold']).result_image
-    linesUtil = processing.LinesUtil(image, pp_image)
-    rec_numbers = processing.RecognizeNumbers()
+    lines_util = processing.LinesUtil(image, pp_image)
 
-    lines = linesUtil.get_lines()
+    lines = lines_util.get_lines()
 
-    rec_numbers.numbers_hist(image, lines)
+    for line in lines:
+        # Name recognition
+        name = None
+        # todo
 
-    processing.show_image(pp_image, 'Image', 0, 0, False)
-    processing.show_image(linesUtil.image, 'Image2', 700, 0, DEBUG)
+
+        # Surname recognition
+        surname = None
+        # todo
+
+        index = rec_numbers.get_index(image, line)
+
+        result.append((name, surname, index))
+
+    return result
+
+
+if len(sys.argv) > 1:
+    result = ocr(str(sys.argv[1]))
+    print('\n'.join(map(str, result)))
+else:
+    print("Podaj ścieżkę do zdjęcia.")

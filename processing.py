@@ -48,7 +48,6 @@ def sample_img(img, step_size=1):
     return np.array(samples)
 
 
-
 class RecognizeNumbers:
     model_filename = 'rec_digits.h5'
 
@@ -73,11 +72,22 @@ class RecognizeNumbers:
                     cropped_img = crop_img(img, elem)
                     sampled_imgs = sample_img(cropped_img)
                     if sampled_imgs is not None and len(sampled_imgs) > 0:
-                        classes = self.predict(sampled_imgs)
-
                         plt.imshow(cropped_img)
                         plt.show()
                         pass
+
+    # Funkcja, która zwraca index z podanej linii
+    # todo
+    def get_index(self, image, line):
+        for elem in line:
+            # Index (numbers) recognition
+            if len(elem):
+                cropped_img = crop_img(image, elem)
+                sampled_imgs = sample_img(cropped_img)
+                if sampled_imgs is not None and len(sampled_imgs) > 0:
+                    number = self.predict(sampled_imgs)
+                    return ''.join(map(str, number))
+
 
 class LinesUtil:
     def __init__(self, image, pp_image):
