@@ -28,25 +28,41 @@ def crop_img(img, line):
     return img[topy:bottomy + 1, topx:bottomx + 1]
 
 
+def expand_horizontaly(img, pad_size):
+
+    first_col = np.array(pad_size * [img[:, 0]])
+    last_col = np.array(pad_size * [img[:, -1]])
+
+    return np.concatenate((first_col, img.transpose([1, 0, 2]), last_col), axis=0).transpose([1, 0, 2])
+
+
 def sample_img(img, step_size=1):
+    x_size, y_size, z_size = img.shape
+
     start_idx = 0
     end_idx = img.shape[1]
     window_size = img.shape[0]
+
+    width_window_size = window_size * 1 // 2
 
     samples = []
 
     while start_idx + window_size <= end_idx:
 
-        sample = img[:window_size, start_idx:start_idx + window_size]
-        sample = rgb2gray(resize(sample, (28, 28, 3), anti_aliasing=True))
+        sample = img[:window_size, start_idx:start_idx + width_window_size]
+        sample = resize(sample, (28, 28, 3), mode='edge', anti_aliasing=True)
+        sample = rgb2gray(sample)
         sample = sample.reshape((*sample.shape, 1))
+
+        sample = 1 - sample
+
+        sample = (sample - np.min(sample)) / (np.max(sample) - np.min(sample))
 
         samples.append(sample)
 
         start_idx += step_size
 
     return np.array(samples)
-
 
 
 class RecognizeNumbers:
@@ -64,6 +80,10 @@ class RecognizeNumbers:
         if np.median(max_probs) < 1e-1:
             return None
 
+        plt.plot(probs)
+        plt.legend(range(10))
+        plt.show()
+
         return np.argmax(probs, axis=1)
 
     def numbers_hist(self, img, lines):
@@ -71,13 +91,18 @@ class RecognizeNumbers:
             for elem in line:
                 if len(elem):
                     cropped_img = crop_img(img, elem)
-                    sampled_imgs = sample_img(cropped_img)
+
+                    pad_size = int(0.1 * cropped_img.shape[1])
+                    padded_img = expand_horizontaly(cropped_img, pad_size)
+
+                    sampled_imgs = sample_img(padded_img)
                     if sampled_imgs is not None and len(sampled_imgs) > 0:
                         classes = self.predict(sampled_imgs)
 
-                        plt.imshow(cropped_img)
+                        plt.imshow(padded_img)
                         plt.show()
                         pass
+
 
 class LinesUtil:
     def __init__(self, image, pp_image):
