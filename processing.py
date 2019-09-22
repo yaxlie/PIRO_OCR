@@ -9,6 +9,8 @@ from PIL import Image, ImageEnhance
 from skimage.transform import resize
 from skimage.color import rgb2gray
 
+from collections import Counter
+
 DEBUG = False
 
 
@@ -65,6 +67,29 @@ def sample_img(img, step_size=1):
     return np.array(samples)
 
 
+def calc_num_lens(sequece):
+    lens = []
+    count = 1
+    current_num = sequece[0]
+    begin_index = 0
+
+    for i, num in enumerate(sequece[1:]):
+        if num != current_num:
+            lens.append((current_num, count, begin_index, i + 1))
+            begin_index = i + 1
+            count = 0
+            current_num = num
+        count += 1
+    lens.append((current_num, count, begin_index, len(sequece)))
+
+    return lens
+
+
+def most_frequent(List):
+    occurence_count = Counter(List)
+    return occurence_count.most_common(1)[0][0]
+
+
 class RecognizeNumbers:
     model_filename = 'rec_digits.h5'
 
@@ -81,10 +106,35 @@ class RecognizeNumbers:
             return None
 
         plt.plot(probs)
-        plt.legend(range(10))
+        plt.legend(range(11))
         plt.show()
 
-        return np.argmax(probs, axis=1)
+        classes = list(np.argmax(probs, axis=1))
+
+        while classes[0] == 10:
+            classes.pop(0)
+        while classes[-1] == 10:
+            classes.pop(-1)
+
+        lens = calc_num_lens(classes)
+        splits = sorted(list(filter(lambda x: x[0] == 10, lens)), key=lambda x: x[1], reverse=True)
+
+        # We need 6 numbers
+        if len(splits) < 5:
+            return []
+
+        result = []
+        begin_index = 0
+        for split in sorted(splits[:5], key=lambda x: x[2]):
+            result.append(most_frequent(classes[begin_index: split[2]]))
+            begin_index = split[3]
+
+        result.append(most_frequent(classes[begin_index:]))
+
+        if 10 in result:
+            return []
+
+        return result
 
     def numbers_hist(self, img, lines):
         for line in lines:
@@ -112,6 +162,8 @@ class RecognizeNumbers:
             if len(elem):
                 cropped_img = crop_img(image, elem)
                 sampled_imgs = sample_img(cropped_img)
+                plt.imshow(cropped_img)
+                plt.show()
                 if sampled_imgs is not None and len(sampled_imgs) > 0:
                     number = self.predict(sampled_imgs)
                     return ''.join(map(str, number))
