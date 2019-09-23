@@ -157,19 +157,17 @@ class RecognizeNumbers:
     # Funkcja, która zwraca index z podanej linii
     # todo
     def get_index(self, image, line):
-        result = None
         for elem in reversed(line):  # wyrazy są umieszcone na liście od prawej do lewej
             # Index (numbers) recognition
             cropped_img = crop_img(image, elem)
             sampled_imgs = sample_img(cropped_img)
             if sampled_imgs is not None and len(sampled_imgs) > 0:
-                # plt.imshow(cropped_img)
-                # plt.show()
                 predicted = self.predict(sampled_imgs)
                 number = ''.join(map(str, predicted))
                 if number != '':
-                    result = number
-        return result
+                    # plt.imshow(cropped_img)
+                    # plt.show()
+                    return number  # Prawdopodobnie znaleziono indeks, przerwij pętlę, żęby nie nadpisać imieniem/nazwiskiem
 
 
 class LinesUtil:
