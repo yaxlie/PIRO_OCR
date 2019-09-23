@@ -150,15 +150,15 @@ class RecognizeNumbers:
             if pad_size:
                 padded_img = expand_horizontaly(cropped_img, pad_size)
 
-            sampled_imgs = sample_img(padded_img)
-            if sampled_imgs is not None and len(sampled_imgs) > 0:
-                predictions = self.predict(sampled_imgs)
-                classes = list(np.argmax(predictions, axis=1))
-                classes = process_predicted(classes)
+                sampled_imgs = sample_img(padded_img)
+                if sampled_imgs is not None and len(sampled_imgs) > 0:
+                    predictions = self.predict(sampled_imgs)
+                    classes = list(np.argmax(predictions, axis=1))
+                    classes = process_predicted(classes)
 
-                if len(classes) != 0:
-                    variances.append(calc_variance(np.max(predictions, axis=1)))
-                    results.append(classes)
+                    if len(classes) != 0:
+                        variances.append(calc_variance(np.max(predictions, axis=1)))
+                        results.append(classes)
 
         if len(results) == 0:
             return None
