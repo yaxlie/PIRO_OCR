@@ -101,10 +101,6 @@ class RecognizeNumbers:
         probs = self.model.predict(sampled_imgs, steps=1)
         max_probs = np.max(probs, axis=1)
 
-        # Dropp if no numbers
-        if np.median(max_probs) < 1e-1:
-            return None
-
         # plt.plot(probs)
         # plt.legend(range(11))
         # plt.show()
@@ -119,9 +115,9 @@ class RecognizeNumbers:
         lens = calc_num_lens(classes)
         splits = sorted(list(filter(lambda x: x[0] == 10, lens)), key=lambda x: x[1], reverse=True)
 
-        # We need 6 numbers
-        if len(splits) < 5:
-            return []
+        # # We need 6 numbers
+        # if len(splits) < 5:
+        #     return []
 
         result = []
         begin_index = 0
@@ -131,8 +127,8 @@ class RecognizeNumbers:
 
         result.append(most_frequent(classes[begin_index:]))
 
-        if 10 in result:
-            return []
+        # if 10 in result:
+        #     return []
 
         return result
 
@@ -160,13 +156,17 @@ class RecognizeNumbers:
         for elem in reversed(line):  # wyrazy są umieszcone na liście od prawej do lewej
             # Index (numbers) recognition
             cropped_img = crop_img(image, elem)
-            sampled_imgs = sample_img(cropped_img)
+
+            pad_size = int(0.1 * cropped_img.shape[1])
+            padded_img = expand_horizontaly(cropped_img, pad_size)
+
+            sampled_imgs = sample_img(padded_img)
             if sampled_imgs is not None and len(sampled_imgs) > 0:
                 predicted = self.predict(sampled_imgs)
                 number = ''.join(map(str, predicted))
                 if number != '':
-                    # plt.imshow(cropped_img)
-                    # plt.show()
+                    plt.imshow(cropped_img)
+                    plt.show()
                     return number  # Prawdopodobnie znaleziono indeks, przerwij pętlę, żęby nie nadpisać imieniem/nazwiskiem
 
 
