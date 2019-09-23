@@ -105,9 +105,9 @@ class RecognizeNumbers:
         if np.median(max_probs) < 1e-1:
             return None
 
-        plt.plot(probs)
-        plt.legend(range(11))
-        plt.show()
+        # plt.plot(probs)
+        # plt.legend(range(11))
+        # plt.show()
 
         classes = list(np.argmax(probs, axis=1))
 
@@ -149,24 +149,28 @@ class RecognizeNumbers:
                     if sampled_imgs is not None and len(sampled_imgs) > 0:
                         classes = self.predict(sampled_imgs)
 
-                        plt.imshow(padded_img)
-                        plt.show()
+                        # plt.imshow(padded_img)
+                        # plt.show()
                         pass
 
 
     # Funkcja, która zwraca index z podanej linii
     # todo
     def get_index(self, image, line):
-        for elem in line:
+        result = None
+        for elem in reversed(line):  # wyrazy są umieszcone na liście od prawej do lewej
             # Index (numbers) recognition
-            if len(elem):
-                cropped_img = crop_img(image, elem)
-                sampled_imgs = sample_img(cropped_img)
-                plt.imshow(cropped_img)
-                plt.show()
-                if sampled_imgs is not None and len(sampled_imgs) > 0:
-                    number = self.predict(sampled_imgs)
-                    return ''.join(map(str, number))
+            cropped_img = crop_img(image, elem)
+            sampled_imgs = sample_img(cropped_img)
+            if sampled_imgs is not None and len(sampled_imgs) > 0:
+                # plt.imshow(cropped_img)
+                # plt.show()
+                predicted = self.predict(sampled_imgs)
+                number = ''.join(map(str, predicted))
+                if number != '':
+                    result = number
+        return result
+
 
 class LinesUtil:
     def __init__(self, image, pp_image):
