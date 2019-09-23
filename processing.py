@@ -89,10 +89,12 @@ def most_frequent(List):
 
 
 def process_predicted(classes):
-    while classes[0] == 10:
+    while len(classes) and classes[0] == 10:
         classes.pop(0)
-    while classes[-1] == 10:
+    while len(classes) and classes[-1] == 10:
         classes.pop(-1)
+    if len(classes) == 0:
+        return []
 
     lens = calc_num_lens(classes)
     splits = sorted(list(filter(lambda x: x[0] == 10, lens)), key=lambda x: x[1], reverse=True)
@@ -132,23 +134,6 @@ class RecognizeNumbers:
     def predict(self, sampled_imgs):
         return self.model.predict(sampled_imgs, steps=1)
 
-    def numbers_hist(self, img, lines):
-        for line in lines:
-            for elem in line:
-                if len(elem):
-                    cropped_img = crop_img(img, elem)
-
-                    pad_size = int(0.1 * cropped_img.shape[1])
-                    padded_img = expand_horizontaly(cropped_img, pad_size)
-
-                    sampled_imgs = sample_img(padded_img)
-                    if sampled_imgs is not None and len(sampled_imgs) > 0:
-                        classes = self.predict(sampled_imgs)
-
-                        # plt.imshow(padded_img)
-                        # plt.show()
-                        pass
-
     # Funkcja, która zwraca index z podanej linii
     # todo
     def get_index(self, image, line):
@@ -159,7 +144,8 @@ class RecognizeNumbers:
             cropped_img = crop_img(image, elem)
 
             pad_size = int(0.1 * cropped_img.shape[1])
-            padded_img = expand_horizontaly(cropped_img, pad_size)
+            if pad_size:
+                padded_img = expand_horizontaly(cropped_img, pad_size)
 
             sampled_imgs = sample_img(padded_img)
             if sampled_imgs is not None and len(sampled_imgs) > 0:
