@@ -32,4 +32,4 @@ def ocr(path_to_image):
         if name or surname or index:
             result.append((name, surname, index))
 
-    return result
+    return reversed(result)

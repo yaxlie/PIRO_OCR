@@ -31,7 +31,6 @@ def crop_img(img, line):
 
 
 def expand_horizontaly(img, pad_size):
-
     first_col = np.array(pad_size * [img[:, 0]])
     last_col = np.array(pad_size * [img[:, -1]])
 
@@ -50,7 +49,6 @@ def sample_img(img, step_size=1):
     samples = []
 
     while start_idx + window_size <= end_idx:
-
         sample = img[:window_size, start_idx:start_idx + width_window_size]
         sample = resize(sample, (28, 28, 3), mode='edge', anti_aliasing=True)
         sample = rgb2gray(sample)
@@ -90,6 +88,40 @@ def most_frequent(List):
     return occurence_count.most_common(1)[0][0]
 
 
+def process_predicted(classes):
+    while classes[0] == 10:
+        classes.pop(0)
+    while classes[-1] == 10:
+        classes.pop(-1)
+
+    lens = calc_num_lens(classes)
+    splits = sorted(list(filter(lambda x: x[0] == 10, lens)), key=lambda x: x[1], reverse=True)
+
+    # # We need 6 or 5 numbers
+    num_splits = 5
+    if len(splits) < 4:
+        return []
+    if num_splits < 5:
+        num_splits = 4
+
+    result = []
+    begin_index = 0
+    for split in sorted(splits[:num_splits], key=lambda x: x[2]):
+        result.append(most_frequent(classes[begin_index: split[2]]))
+        begin_index = split[3]
+
+    result.append(most_frequent(classes[begin_index:]))
+
+    if 10 in result:
+        return []
+
+    return result
+
+
+def calc_variance(classes):
+    return np.var(classes)
+
+
 class RecognizeNumbers:
     model_filename = 'rec_digits.h5'
 
@@ -98,39 +130,7 @@ class RecognizeNumbers:
         self.currently_processed = None
 
     def predict(self, sampled_imgs):
-        probs = self.model.predict(sampled_imgs, steps=1)
-        max_probs = np.max(probs, axis=1)
-
-        # plt.plot(probs)
-        # plt.legend(range(11))
-        # plt.show()
-
-        classes = list(np.argmax(probs, axis=1))
-
-        while classes[0] == 10:
-            classes.pop(0)
-        while classes[-1] == 10:
-            classes.pop(-1)
-
-        lens = calc_num_lens(classes)
-        splits = sorted(list(filter(lambda x: x[0] == 10, lens)), key=lambda x: x[1], reverse=True)
-
-        # # We need 6 numbers
-        # if len(splits) < 5:
-        #     return []
-
-        result = []
-        begin_index = 0
-        for split in sorted(splits[:5], key=lambda x: x[2]):
-            result.append(most_frequent(classes[begin_index: split[2]]))
-            begin_index = split[3]
-
-        result.append(most_frequent(classes[begin_index:]))
-
-        # if 10 in result:
-        #     return []
-
-        return result
+        return self.model.predict(sampled_imgs, steps=1)
 
     def numbers_hist(self, img, lines):
         for line in lines:
@@ -149,10 +149,11 @@ class RecognizeNumbers:
                         # plt.show()
                         pass
 
-
     # Funkcja, która zwraca index z podanej linii
     # todo
     def get_index(self, image, line):
+        results = []
+        variances = []
         for elem in reversed(line):  # wyrazy są umieszcone na liście od prawej do lewej
             # Index (numbers) recognition
             cropped_img = crop_img(image, elem)
@@ -162,12 +163,21 @@ class RecognizeNumbers:
 
             sampled_imgs = sample_img(padded_img)
             if sampled_imgs is not None and len(sampled_imgs) > 0:
-                predicted = self.predict(sampled_imgs)
-                number = ''.join(map(str, predicted))
-                if number != '':
-                    plt.imshow(cropped_img)
-                    plt.show()
-                    return number  # Prawdopodobnie znaleziono indeks, przerwij pętlę, żęby nie nadpisać imieniem/nazwiskiem
+                predictions = self.predict(sampled_imgs)
+                classes = list(np.argmax(predictions, axis=1))
+                classes = process_predicted(classes)
+
+                if len(classes) != 0:
+                    variances.append(calc_variance(np.max(predictions, axis=1)))
+                    results.append(classes)
+
+        if len(results) == 0:
+            return None
+        result = results[np.argmin(variances)]
+        number = ''.join(map(str, result))
+        if number != '':
+            result = number
+        return result  # Prawdopodobnie znaleziono indeks, przerwij pętlę, żęby nie nadpisać imieniem/nazwiskiem
 
 
 class LinesUtil:
