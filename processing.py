@@ -127,8 +127,11 @@ def calc_variance(classes):
 class RecognizeNumbers:
     model_filename = 'rec_digits.h5'
 
-    def __init__(self):
-        self.model = keras.models.load_model('saved_models/' + self.model_filename)
+    def __init__(self, model=None):
+        if model:
+            self.model = model
+        else:
+            self.model = keras.models.load_model('saved_models/' + self.model_filename)
         self.currently_processed = None
 
     def predict(self, sampled_imgs):

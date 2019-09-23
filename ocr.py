@@ -3,8 +3,8 @@ import yaml
 import processing
 
 
-def ocr(path_to_image):
-    rec_numbers = processing.RecognizeNumbers()
+def ocr(path_to_image, model=None):
+    rec_numbers = processing.RecognizeNumbers(model)
 
     result = []
 
