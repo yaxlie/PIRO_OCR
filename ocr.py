@@ -29,6 +29,7 @@ def ocr(path_to_image):
 
         index = rec_numbers.get_index(image, line)
 
-        result.append((name, surname, index))
+        if name or surname or index:
+            result.append((name, surname, index))
 
     return result
