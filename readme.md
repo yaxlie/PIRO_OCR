@@ -45,7 +45,7 @@ Użycie wcześniej dobranych parametrów i zastosowanie operacji morfologicznych
 
 | Oryginalne zdjęcie | Po processingu |
 | - | - |
-| [![Przykład 1](https://github.com/yaxlie/PIRO_OCR/blob/master/res/img_1.jpg?raw=true =100x)](https://github.com/yaxlie/PIRO_OCR/blob/master/res/img_1.jpg?raw=true) | [![Przykład 1](https://github.com/yaxlie/PIRO_OCR/blob/feature/report/report/lines.png?raw=true =100x)](https://github.com/yaxlie/PIRO_OCR/blob/feature/report/report/lines.png?raw=true)
+| <a target="_blank" href="https://github.com/yaxlie/PIRO_OCR/blob/master/res/img_1.jpg?raw=true"><img src="https://github.com/yaxlie/PIRO_OCR/blob/master/res/img_1.jpg?raw=true" width="80"></a> | <a target="_blank" href="https://github.com/yaxlie/PIRO_OCR/blob/feature/report/report/lines.png?raw=true"><img src="https://github.com/yaxlie/PIRO_OCR/blob/feature/report/report/lines.png?raw=true" width="80"></a> |
 3. Przejście do klasy `LinesUtil`
 4.  Znalezienie konturów, za pomocą funkcji `cv2.findContours`
 5.  Stworzenie listy wycinków, za pomocą funkcji `cv2.convexHull`
@@ -63,7 +63,7 @@ Użycie wcześniej dobranych parametrów i zastosowanie operacji morfologicznych
  
 | Oryginalne zdjęcie | Po dodaniu paddingu |
 | - | - |
-| [![Przykład 1](https://github.com/yaxlie/PIRO_OCR/blob/feature/report/report/cropped.PNG?raw=true =100x)](https://github.com/yaxlie/PIRO_OCR/blob/feature/report/report/cropped.PNG?raw=true) | [![Przykład 1](https://github.com/yaxlie/PIRO_OCR/blob/feature/report/report/padded.PNG?raw=true =100x)](https://github.com/yaxlie/PIRO_OCR/blob/feature/report/report/padded.PNG?raw=true)
+| <a target="_blank" href="https://github.com/yaxlie/PIRO_OCR/blob/feature/report/report/cropped.PNG?raw=true"><img src="https://github.com/yaxlie/PIRO_OCR/blob/feature/report/report/cropped.PNG?raw=true" alt="cropped.jpg" width="80"></a> | <a target="_blank" href="https://github.com/yaxlie/PIRO_OCR/blob/feature/report/report/padded.PNG?raw=true"><img src="https://github.com/yaxlie/PIRO_OCR/blob/feature/report/report/padded.PNG?raw=true" width="80"></a> |
 6. Próbkowanie wycinka (`sample_img`). Wycinane zostają okna o mniejszej szerokości, w celu rozpoznania pojedynczego znaku lub odstępu między znakami.
 7. Użycie `model.predict(sampled_imgs)` na uzyskanych próbkach i zwrócenie listy, której elementy to rozpoznane znaki (jest ich bardzo dużo, ze względu na próbkowanie)
 8. Analiza listy dla każdego wycinka. Wycinek jest dzielony na podstawie 4/5 najdłużyszch sekwencji odpowiedzi sieci o wystąpieniu odstępu. (z wyjątkiem odstępu na początku oraz na końcu sekwencji) Znaki zostają przypisane między odstępy na podstawie kryterium max z ilości odpowiedzi sieci głosujących na daną klasę w tym obszarze.
@@ -91,7 +91,11 @@ Brakuje:
 ## Przykłady
 **Zdjęcie 1:**
 ###
-[![Przykład 1](https://github.com/yaxlie/PIRO_OCR/blob/master/res/img_1.jpg?raw=true =100x)](https://github.com/yaxlie/PIRO_OCR/blob/master/res/img_1.jpg?raw=true)
+
+<a target="_blank" href="https://github.com/yaxlie/PIRO_OCR/blob/master/res/img_1.jpg?raw=true">
+  <img src="https://github.com/yaxlie/PIRO_OCR/blob/master/res/img_1.jpg?raw=true" alt="img_1.jpg" width="80">
+</a>
+
 ###
 **Wynik:**
 ```
@@ -112,7 +116,11 @@ Brakuje:
 
 **Zdjęcie 2:**
 ###
-[![Przykład 1](https://github.com/yaxlie/PIRO_OCR/blob/master/res/img_15.jpg?raw=true =100x)](https://github.com/yaxlie/PIRO_OCR/blob/master/res/img_15.jpg?raw=true)
+
+<a target="_blank" href="https://github.com/yaxlie/PIRO_OCR/blob/master/res/img_15.jpg?raw=true">
+  <img src="https://github.com/yaxlie/PIRO_OCR/blob/master/res/img_15.jpg?raw=true" alt="img_15.jpg" width="80"/>
+</a>
+
 ###
 **Wynik:**
 ```
