@@ -1,8 +1,9 @@
 import cv2
 import numpy as np
 import keras
-
-import matplotlib.pyplot as plt
+from keras import Sequential, layers
+from keras.layers.advanced_activations import LeakyReLU
+from keras.regularizers import l2
 
 from PIL import Image, ImageEnhance
 
@@ -124,14 +125,51 @@ def calc_variance(classes):
     return np.var(classes)
 
 
+def gen_model():
+
+    model = Sequential()
+
+    model.add(layers.Conv2D(filters=64, kernel_size=(5, 5), padding='Same',
+                            input_shape=(28, 28, 1)))
+    model.add(layers.BatchNormalization())
+    model.add(LeakyReLU())
+
+    model.add(layers.Conv2D(filters=64, kernel_size=(5, 5), padding='Same',
+                            ))
+    model.add(layers.BatchNormalization())
+    model.add(LeakyReLU())
+
+    model.add(layers.MaxPool2D(pool_size=(2, 2)))
+    model.add(layers.Dropout(0.25))
+
+    model.add(layers.Conv2D(filters=128, kernel_size=(3, 3), padding='Same',
+                            ))
+    model.add(layers.BatchNormalization())
+    model.add(LeakyReLU())
+
+    model.add(layers.Conv2D(filters=128, kernel_size=(3, 3), padding='Same',
+                            ))
+    model.add(layers.BatchNormalization())
+    model.add(LeakyReLU())
+
+    model.add(layers.Flatten())
+    model.add(layers.Dense(256))
+    model.add(layers.BatchNormalization())
+    model.add(LeakyReLU())
+    model.add(layers.Dense(11, activation="softmax"))
+
+    return model
+
+
 class RecognizeNumbers:
-    model_filename = 'rec_digits.h5'
+    model_filename = 'rec_digits_weights.h5'
 
     def __init__(self, model=None):
         if model:
             self.model = model
         else:
-            self.model = keras.models.load_model('saved_models/' + self.model_filename)
+            self.model = gen_model()
+            self.model.load_weights('saved_models/' + self.model_filename)
         self.currently_processed = None
 
     def predict(self, sampled_imgs):

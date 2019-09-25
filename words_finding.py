@@ -4,7 +4,6 @@ from skimage.feature import canny
 from skimage.morphology import dilation, disk, rectangle, erosion
 from skimage.transform import hough_line, hough_line_peaks, rotate
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 def words_finding(image):
