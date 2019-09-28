@@ -1,24 +1,27 @@
-import io
+import sys
+import ocr
+import keras
+import glob
 
-import numpy as np
-import cv2
-import os
-import yaml
+MODEL_FILENAME = 'rec_digits.h5'
 
-import processing
 
-DEBUG = True
+def main():
+    if len(sys.argv) > 1:
+        if str(sys.argv[1]).endswith(('.jpg', '.png', '.gif')):
+            result = ocr.ocr(str(sys.argv[1]))
+            print('\n'.join(map(str, result)))
+        else:
+            model = keras.models.load_model('saved_models/' + MODEL_FILENAME)
 
-imgs = []
+            for file in glob.iglob('{}/**'.format(str(sys.argv[1])), recursive=True):
+                print(file)
+                if file.endswith('.jpg'):
+                    result = ocr.ocr(file, model)
+                    print('\n'.join(map(str, result)))
+    else:
+        print("Nie podano ścieżki do pliku lub katalogu.")
 
-# Read YAML file
-with open("params.yaml", 'r') as stream:
-    params = yaml.safe_load(stream)
 
-# Load in the images
-for filepath in os.listdir('res/'):
-    imgs.append(cv2.imread('res/{0}'.format(filepath), 0))
-
-for image in imgs:
-    pp_image = processing.PreProcessing(image, params['gamma'], params['contrast'], params['threshold']).result_image
-    processing.show_image(pp_image, 'Image', 0, 0, DEBUG)
+if __name__ == '__main__':
+    main()
